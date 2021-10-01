@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import sys
+import os
 from os import listdir
 from os.path import isfile, join
 
@@ -12,8 +13,11 @@ def main():
     except:
         path = input("Path: ")
 
+    if not os.path.isfile(path):
+        userpath = path
+        path = os.getcwd() + "\\" + userpath
+        
     # Get the list of files in the directory if directory path is provided and not filename
-
     if ".html" not in path:
         files = [f for f in listdir(path) if isfile(join(path, f))]
         print(f"Total Files: {len(files)}")
@@ -76,21 +80,27 @@ def main():
             # Does not work as expected because although hidden attribute is removed it's reintroduced later?
             changeCounter = 0
             read_less_buttons = soup.find_all('tp-yt-paper-button', attrs={'class': 'style-scope', 'id': 'less'})
-            for button in read_less_buttons:
-                # Checks if it's sibling("Read More") has a hidden attribute
-                # So basically the "Read More" tag is visible then unhide "Show Less" button
-                if 'hidden' not in button.parent.contents[7].attrs:
-                    del button.attrs['hidden']
-                    changeCounter+=1
+            try:
+                for button in read_less_buttons:
+                    # Checks if it's sibling("Read More") has a hidden attribute
+                    # So basically the "Read More" tag is visible then unhide "Show Less" button
+                    if 'hidden' not in button.parent.contents[7].attrs:
+                        del button.attrs['hidden']
+                        changeCounter+=1
+            except Exception as e:
+                print(e, "\nError while handling the read less buttons")
             print(f"Read Less Button Changes: {changeCounter}")
 
             # Hide the "Read More" button
             changeCounter = 0
             read_more_buttons = soup.find_all('tp-yt-paper-button', attrs={'class': 'style-scope ytd-expander', 'id': 'more'})
             # Create/add the hidden attribute
-            for button in read_more_buttons:
-                button['hidden'] = ''
-                changeCounter += 1
+            try:
+                for button in read_more_buttons:
+                    button['hidden'] = ''
+                    changeCounter += 1
+            except Exception as e:
+                print(e, "\nError handling the read more buttons")
             print(f"Read More Button Changes: {changeCounter}")
 
             # Get the string of soup rather than prettifying it
